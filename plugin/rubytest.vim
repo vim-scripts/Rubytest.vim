@@ -79,13 +79,27 @@ function s:RunTest()
   end
 
   let case = s:FindCase(s:test_case_patterns['test'])
+  let spec_case = s:FindCase(s:test_case_patterns['spec'])
   if s:test_scope == 2 || case != 'false'
-    let case = substitute(case, "'\\|\"", '.', 'g')
-    let cmd = substitute(cmd, '%c', case, '')
-    let cmd = substitute(cmd, '%p', s:EscapeBackSlash(@%), '')
+    let case = substitute(case, "\#\\|'\\|\"", '.', 'g')
+    let cmd = substitute(cmd, '%c', case, 'g')
+    let cmd = substitute(cmd, '%p', s:EscapeBackSlash(@%), 'g')
 
     if @% =~ '^test'
-      let cmd = substitute(cmd, '^ruby ', 'ruby -Itest -rtest_helper ', '')
+      let cmd = substitute(cmd, '^ruby ', 'ruby -Itest ', '')
+    endif
+
+    call s:ExecTest(cmd)
+  elseif spec_case != 'false'
+    let name = matchstr( spec_case, '\v%("([^"]*)"|''([^'']*)'')' )
+    let name = substitute(name, '\s\+', '\.', 'g')
+    let name = substitute(name, '^["|'']*\(.\{-}\)["|'']$', '\1', '')
+    let spec_case = substitute(spec_case, '.*', name, '')
+    let cmd = substitute(cmd, '%c', spec_case, 'g')
+    let cmd = substitute(cmd, '%p', s:EscapeBackSlash(@%), 'g')
+
+    if @% =~ '^test'
+      let cmd = substitute(cmd, '^ruby ', 'ruby -Itest ', '')
     endif
 
     call s:ExecTest(cmd)
@@ -107,8 +121,8 @@ function s:RunSpec()
 
   let case = s:FindCase(s:test_case_patterns['spec'])
   if s:test_scope == 2 || case != 'false'
-    let cmd = substitute(cmd, '%c', case, '')
-    let cmd = substitute(cmd, '%p', s:EscapeBackSlash(@%), '')
+    let cmd = substitute(cmd, '%c', case, 'g')
+    let cmd = substitute(cmd, '%p', s:EscapeBackSlash(@%), 'g')
     call s:ExecTest(cmd)
   else
     echo 'No spec found.'
@@ -127,8 +141,8 @@ function s:RunFeature()
 
   let case = s:FindCase(s:test_case_patterns['feature'])
   if s:test_scope == 2 || case != 'false'
-    let cmd = substitute(cmd, '%c', case, '')
-    let cmd = substitute(cmd, '%p', s:EscapeBackSlash(@%), '')
+    let cmd = substitute(cmd, '%c', case, 'g')
+    let cmd = substitute(cmd, '%p', s:EscapeBackSlash(@%), 'g')
     call s:ExecTest(cmd)
   else
     echo 'No story found.'
@@ -167,13 +181,13 @@ function s:GetSpecLine(str)
 endfunction
 
 function s:GetStoryLine(str)
-  return join(split(split(a:str, "Scenario:")[1]))
+  return join(split(split(a:str, 'Scenario\( Outline\)\?:')[1]))
 endfunction
 
 let s:test_case_patterns = {}
 let s:test_case_patterns['test'] = {'^\s*def test':function('s:GetTestCaseName1'), '^\s*test \s*"':function('s:GetTestCaseName2'), "^\\s*test \\s*'":function('s:GetTestCaseName4'), '^\s*should \s*"':function('s:GetTestCaseName3'), "^\\s*should \\s*'":function('s:GetTestCaseName5')}
 let s:test_case_patterns['spec'] = {'^\s*\(it\|example\|describe\|context\) \s*':function('s:GetSpecLine')}
-let s:test_case_patterns['feature'] = {'^\s*Scenario:':function('s:GetStoryLine')}
+let s:test_case_patterns['feature'] = {'^\s*Scenario\( Outline\)\?:':function('s:GetStoryLine')}
 
 let s:save_cpo = &cpo
 set cpo&vim
