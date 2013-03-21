@@ -1,5 +1,5 @@
 " Vim plugin for running ruby tests
-" Last Change: Jun 17 2011
+" Last Change: Mar 21, 2013
 " Maintainer: Jan <jan.h.xie@gmail.com>
 " License: MIT License
 
@@ -18,7 +18,7 @@ if !exists("g:rubytest_cmd_test")
   let g:rubytest_cmd_test = "ruby %p"
 endif
 if !exists("g:rubytest_cmd_testcase")
-  let g:rubytest_cmd_testcase = "ruby %p -n '/%c/'"
+  let g:rubytest_cmd_testcase = "ruby %p -n '%c'"
 endif
 if !exists("g:rubytest_cmd_spec")
   let g:rubytest_cmd_spec = "rspec %p"
@@ -186,7 +186,7 @@ endfunction
 
 let s:test_case_patterns = {}
 let s:test_case_patterns['test'] = {'^\s*def test':function('s:GetTestCaseName1'), '^\s*test \s*"':function('s:GetTestCaseName2'), "^\\s*test \\s*'":function('s:GetTestCaseName4'), '^\s*should \s*"':function('s:GetTestCaseName3'), "^\\s*should \\s*'":function('s:GetTestCaseName5')}
-let s:test_case_patterns['spec'] = {'^\s*\(it\|example\|describe\|context\) \s*':function('s:GetSpecLine')}
+let s:test_case_patterns['spec'] = {'^\s*\(it\|example\|scenario\|describe\|context\|feature\) \s*':function('s:GetSpecLine')}
 let s:test_case_patterns['feature'] = {'^\s*Scenario\( Outline\)\?:':function('s:GetStoryLine')}
 
 let s:save_cpo = &cpo
